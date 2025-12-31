@@ -52,6 +52,8 @@ private slots:
 private:
     void refreshTable(const QDate &date);
     bool esisteSovrapposizione(const QDate &date, const QTime &start, const QTime &end);
+    void salvaSuFile();
+    void caricaDaFile();
 
 
 

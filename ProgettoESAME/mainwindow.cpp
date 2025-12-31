@@ -2,12 +2,16 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QFile>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    caricaDaFile();
 
     connect(ui->calendarWidget, &QCalendarWidget::clicked,
             this, &MainWindow::onDateClicked);
@@ -27,10 +31,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     selectedDate = QDate::currentDate();
     ui->calendarWidget->setSelectedDate(selectedDate);
+    refreshTable(selectedDate);
 }
 
 MainWindow::~MainWindow()
 {
+    salvaSuFile();
     delete ui;
 }
 
@@ -43,6 +49,18 @@ void MainWindow::refreshTable(const QDate &date){
 
     ui->tableActivities->setRowCount(0);
     QList<Task> tasksOfDay = tasksByDate.value(date);
+
+    // ordinamento per ora di inizio attività
+    for(int i = 0; i < tasksOfDay.size()-1; ++i){
+        for(int j = i+1; j < tasksOfDay.size(); ++j){
+
+            if(tasksOfDay[j].startTime < tasksOfDay[i].startTime){
+                Task temp = tasksOfDay[i];
+                tasksOfDay[i] = tasksOfDay[j];
+                tasksOfDay[j] = temp;
+            }
+        }
+    }
 
     for(int i = 0; i < tasksOfDay.size(); ++i){
         int row = ui->tableActivities->rowCount();
@@ -105,6 +123,7 @@ void MainWindow::onSaveTaskClicked(){
     task.completed = false;
 
     tasksByDate[selectedDate].append(task);
+    salvaSuFile();
     refreshTable(selectedDate);
 
 }
@@ -139,6 +158,8 @@ void MainWindow::onUpdateTaskClicked(){
 
     index_task_da_editare = -1;
 
+    salvaSuFile();
+
     refreshTable(selectedDate);
 
 }
@@ -167,6 +188,8 @@ void MainWindow::onDeleteTaskClicked(){
 
     // rimuovo l'attività
     tasksOfDay.removeAt(row);
+
+    salvaSuFile();
 
     refreshTable(selectedDate);
 }
@@ -215,6 +238,89 @@ bool MainWindow::esisteSovrapposizione(const QDate &date, const QTime &start, co
 
     return false;
 }
+
+// attività su file
+
+void MainWindow::salvaSuFile(){
+
+    QFile file("attivita.txt");
+
+    // apro file in scrittura, se non esiste lo crea
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&file);
+
+    QList<QDate> date = tasksByDate.keys();
+
+    for(int i = 0; i < date.size(); ++i){
+
+        QList<Task> lista = tasksByDate[date[i]];
+
+        for(int j = 0; j < lista.size(); ++j){
+
+            out << date[i].toString("yyyy-MM-dd") << ";"
+                << (lista[j].type == TaskType::Event ? "Evento" : "Attività") << ";"
+                << lista[j].title << ";"
+                << lista[j].startTime.toString("HH:mm") << ";";
+
+            if(lista[j].hasEndTime)
+                out << lista[j].endTime.toString("HH:mm");
+            else
+                out << "";
+
+            out << ";" <<lista[j].frequency << ";"
+                << (lista[j].completed ? "1":"0") <<"\n";
+        }
+    }
+
+    file.close();
+    qDebug() << "File salvato in: " << QFileInfo(file).absoluteFilePath();
+}
+
+void MainWindow::caricaDaFile(){
+
+    QFile file("attivita.txt");
+
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    QTextStream in(&file);
+
+    while(!in.atEnd()){
+        QString riga = in.readLine();
+        QStringList parti = riga.split(";");
+
+        QDate data = QDate::fromString(parti[0], "yyyy-MM-dd");
+
+        Task t;
+
+        t.type = (parti[1] == "Evento") ? TaskType::Event : TaskType::Activity;
+        t.title = parti[2];
+        t.startTime = QTime::fromString(parti[3], "HH:mm");
+        if(!parti[4].isEmpty()){
+            t.endTime = QTime::fromString(parti[4], "HH:mm");
+            t.hasEndTime = true;
+        }else{
+            t.hasEndTime = false;
+        }
+
+        t.frequency = parti[5];
+
+        tasksByDate[data].append(t);
+    }
+
+    file.close();
+
+
+
+
+
+
+}
+
+
+
 
 
 
