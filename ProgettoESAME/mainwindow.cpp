@@ -98,10 +98,14 @@ void MainWindow::onSaveTaskClicked(){
     }
 
     if(esisteSovrapposizione(selectedDate, oraInizio, oraFine)){
-        QMessageBox::warning(this, "Sovrapposizione evento", "Esiste già un'attività in questa fascia oraria.");
+        QMessageBox::warning(this, "Sovrapposizione evento","Esiste già un'attività in questa fascia oraria.");
         return;
     }
 
+    if(ui->checkEndTime->isChecked() && (ui->timeEnd->time() < ui->timeStart->time())){
+        QMessageBox::warning(this, "Orario non valido","L'orario di fine deve essere successivo all'orario di inizio.");
+        return;
+    }
 
     Task task;
 
@@ -231,9 +235,12 @@ bool MainWindow::esisteSovrapposizione(const QDate &date, const QTime &start, co
             otherEnd = tasksOfDay[i].startTime;
         }
 
-        if((start < otherEnd) && (end > otherStart)){
-            return true;
+        if(otherEnd >= otherStart){
+            if((start < otherEnd) && (end > otherStart)){
+                return true;
+            }
         }
+
     }
 
     return false;
@@ -311,19 +318,5 @@ void MainWindow::caricaDaFile(){
     }
 
     file.close();
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
 
