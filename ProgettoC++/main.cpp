@@ -84,6 +84,20 @@ void test_remove(){
     assert(s.size() == 2);
 
     std::cout << "  >>> [END] remove OK" << std::endl << std::endl;
+
+    std::cout << "[TEST REMOVE] remove su set con un solo elemento" << std::endl;
+
+    set<int> f;
+    f.add(10);
+    std::cout << "  Set prima: " << f << std::endl;
+    f.remove(10);
+    std::cout << "  Set dopo: " << f << std::endl;
+    assert(!f.contains(10));
+    assert(f.size() == 0);
+
+    std::cout << "  >>> [OK] remove su set con un solo elemento" << std::endl << std::endl;
+
+
 }
 
 /* ============================
@@ -431,14 +445,130 @@ void test_filter_out(){
     assert(dispari.contains(1));
     assert(dispari.contains(3));
 
-
-
     std::cout << "  >>> [OK] filter_out" << std::endl << std::endl;
-
-    
 }
 
+/* ============================
+   TEST LOAD / SAVE
+   ============================ */
+void test_load_save(){
 
+    std::cout << "[TEST save / load] tipi custom (attività)" << std::endl;
+
+    std::cout << "[1] Creo un set di Attività s vuoto" << std::endl;
+    set<Attivita> s;
+    std::cout << "[2] Creo due attività e le inserisco nel set appena creato" << std::endl;
+    Attivita attivita1;
+    attivita1.titolo = "StudioC++";
+    attivita1.ora_inizio = 14;
+    attivita1.ora_fine = 17;
+
+    Attivita attivita2;
+    attivita2.titolo = "Allenamento";
+    attivita2.ora_inizio = 18;
+    attivita2.ora_fine = 20;
+
+    s.add(attivita1);
+    s.add(attivita2);
+
+    std::cout << "   Attivita inserite nel set: " << std::endl;
+    std::cout << "   - " << attivita1 << std::endl;
+    std::cout << "   - " << attivita2 << std::endl << std::endl;
+
+    std::cout << "[3] Salvo il contenuto del set su file (attivita_set.txt)" << std::endl;
+    save(s, "attivita_set.txt");
+    std::cout << "    Salvataggio completato" << std::endl << std::endl;
+
+    std::cout << "[4] Creo un nuovo set vuoto s2 e carico i dati dal file" << std::endl;
+    set<Attivita> s2;
+    load("attivita_set.txt", s2);
+    std::cout << "    Caricamento completato" << std::endl << std::endl;
+
+    std::cout << "Set s: " << s << std::endl;
+    std::cout << "Set s2: " << s2 << std::endl << std::endl; 
+
+    std::cout << "[5] Verifico che i due set siano uguali" << std::endl;
+    assert(s == s2);
+    std::cout << "    I due set coincidono" << std::endl << std::endl;
+
+    std::cout << "[6] Inserisco una attivita fittizia in s2" << std::endl;
+    Attivita f;
+    f.titolo = "prova";
+    f.ora_inizio = 12;
+    f.ora_fine = 14;
+    s2.add(f);
+
+    std::cout << "[7] Verifico che i due set siano diversi dopo l'inserimento dell'attività fittizia" << std::endl;
+    assert(!(s==s2));
+    std::cout << "Set s: " << s << std::endl;
+    std::cout << "Set s2: " << s2 << std::endl << std::endl; 
+    std::cout << "    [OK] I due set non coincidono" << std::endl << std::endl;
+
+    std::cout << "[8] Ricarico dal file, gli eventuali dati già presenti nel set vengono rimossi e sostituiti" << std::endl;
+    load("attivita_set.txt", s2);
+    std::cout << "    Caricamento completato" << std::endl << std::endl;
+
+    std::cout << "[9] Verifico che i due set DOPO il load coincidano di nuovo " << std::endl;
+    assert(s==s2);
+    std::cout << "    [OK] Coincidono" << std::endl << std::endl;
+
+    std::cout << "[TEST save / load] con set vuoto" << std::endl;
+
+    set<Attivita> g;
+    save(g, "vuoto.txt");
+    std::cout << "Salvo set vuoto: " << g << std::endl;
+
+    set<Attivita> g2;
+    load("vuoto.txt", g2);
+    std::cout << "Carico set vuoto: " << g2 << std::endl;
+    
+    assert(g2.size() == 0);
+
+    std::cout << "  >>> [OK] save / load con set vuoto" << std::endl << std::endl;
+}
+
+/* ============================
+   TEST TIPO CUSTOM ATTIVITA
+   ============================ */
+
+void test_tipo_custom(){
+
+    std::cout << "[TEST] Tipo custom Attivita" << std::endl;
+
+    std::cout << "[1] Creo un set <Attivita> vuoto" << std::endl;
+    set<Attivita> s;
+    assert(s.size() == 0);
+
+    std::cout << "[2] Creo alcune attivita" << std::endl;
+    Attivita a1; a1.titolo = "StudioC++"; a1.ora_inizio = 10; a1.ora_fine = 15;
+    Attivita a2; a2.titolo = "Allenamento"; a2.ora_inizio = 18; a2.ora_fine = 20; 
+    Attivita a3; a3.titolo = "Cena"; a3.ora_inizio = 21; a3.ora_fine = 22;  
+
+    std::cout << "[3] Inserisco le attivita nel set" << std::endl;
+    s.add(a1); s.add(a2); s.add(a3);
+    std::cout << "Set dopo inserimento: " << s << std::endl;
+
+    std::cout << "[4] Verifico contains su tipi custum" << std::endl;
+    assert(s.contains(a1)); assert(s.contains(a2)); assert(s.contains(a3));
+
+    Attivita d; d.titolo = "Dormire"; d.ora_inizio = 23; d.ora_fine = 7;
+    assert(!s.contains(d));
+
+    std::cout << "[5] Iterazione sul set (stampa elemento per elemento)" << std::endl;
+    set<Attivita>::const_iterator it;
+    for(it = s.begin(); it != s.end(); ++it){
+        std::cout << " - "<< *it << std::endl;
+    }
+
+    std::cout << "[6] Rimuovo una attivita (Allenamento)" << std::endl;
+    s.remove(a2);
+    assert(s.size() == 2);
+    assert(!s.contains(a2));
+
+    std::cout << "Set dopo la remove: " << s << std::endl;
+
+    std::cout << "  >>> [OK] Tipo custom Attivita" << std::endl << std::endl;
+}
 
 
 int main() {
@@ -476,6 +606,12 @@ int main() {
     test_iterator_constructor();
 
     test_filter_out();
+
+    test_load_save();
+
+    test_tipo_custom();
+
+    std::cout << " *** TUTTI I TEST PASSATI CORRETTAMENTE ***" << std::endl << std::endl;
 
 
 

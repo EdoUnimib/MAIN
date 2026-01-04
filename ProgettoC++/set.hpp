@@ -12,8 +12,29 @@
 #include <ostream>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <fstream>
 #include <iterator> // std::forward_iterator_tag
 #include <cstddef>  // std::ptrdiff_t
+
+struct Attivita{
+    std::string titolo;
+    int ora_inizio;
+    int ora_fine;
+};
+
+bool operator==(const Attivita &a, const Attivita &b){
+    return a.titolo == b.titolo &&
+           a.ora_inizio == b.ora_inizio &&
+           a.ora_fine == b.ora_fine;
+}
+
+std::ostream& operator<<(std::ostream& os, const Attivita &a){
+    os << a.titolo << " "
+       << a.ora_inizio << "-"
+       << a.ora_fine;
+    return os;
+}
 
 template<typename T>
 class set{
@@ -572,7 +593,49 @@ set<T> filter_out(const set<T>& s, Predicato P){
     }
 
     return risultato;
+}
 
+void save(const set<Attivita> &s, const std::string &filename){
+    std::ofstream file(filename.c_str());
+
+    if(!file)
+        throw std::runtime_error("Errore apertura file");
+
+    for(set<Attivita>::const_iterator it = s.begin(); it != s.end(); ++it){
+
+        file << it->titolo << ";"
+             << it->ora_inizio << ";"
+             << it->ora_fine << std::endl;
+    }
+}
+
+void load(const std::string &filename, set<Attivita> &s){
+    std::ifstream file(filename.c_str());
+
+    if(!file)
+        return; // se il file non esiste non fa nulla
+
+    s.clear();
+
+    std::string titolo;
+    int ora_inizio;
+    int ora_fine;
+    char separatore; // (;)
+
+    while(std::getline(file, titolo, ';')){
+        file >> ora_inizio;
+        file >> separatore;
+        file >> ora_fine;
+        file.ignore(); // salta il newline
+        
+
+        Attivita a;
+        a.titolo = titolo;
+        a.ora_inizio = ora_inizio;
+        a.ora_fine = ora_fine;
+
+        s.add(a);
+    }
 }
 
 
