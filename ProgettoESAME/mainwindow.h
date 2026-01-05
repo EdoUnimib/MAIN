@@ -54,6 +54,8 @@ private:
     bool esisteSovrapposizione(const QDate &date, const QTime &start, const QTime &end);
     void salvaSuFile();
     void caricaDaFile();
+    void generaRicorrenze(const Task &taskBase, const QDate &dataDiInizio);
+    void aggiungiIstanza(const Task &base, const QDate &data);
 
 
 

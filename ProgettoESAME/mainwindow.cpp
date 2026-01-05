@@ -127,6 +127,10 @@ void MainWindow::onSaveTaskClicked(){
     task.completed = false;
 
     tasksByDate[selectedDate].append(task);
+    if(task.frequency != "Nessuna"){
+        generaRicorrenze(task, selectedDate);
+    }
+
     salvaSuFile();
     refreshTable(selectedDate);
 
@@ -244,6 +248,50 @@ bool MainWindow::esisteSovrapposizione(const QDate &date, const QTime &start, co
     }
 
     return false;
+}
+
+void MainWindow::generaRicorrenze(const Task &taskBase, const QDate &dataDiInizio){
+
+    QDate fineAnno = QDate(dataDiInizio.year(), 12, 31);
+
+    QDate current = dataDiInizio;
+
+    if(taskBase.frequency == "Giornaliera"){
+        current = current.addDays(1);
+        while (current <= fineAnno) {
+            aggiungiIstanza(taskBase, current);
+            current = current.addDays(1);
+        }
+    }
+
+    else if(taskBase.frequency == "Settimanale"){
+        current = current.addDays(7);
+        while(current <= fineAnno){
+            aggiungiIstanza(taskBase, current);
+            current = current.addDays(7);
+        }
+    }
+
+    else if(taskBase.frequency == "Mensile"){
+        current = current.addMonths(1);
+        while(current <= fineAnno){
+            aggiungiIstanza(taskBase, current);
+            current = current.addMonths(1);
+        }
+    }
+}
+
+void MainWindow::aggiungiIstanza(const Task &base, const QDate &data){
+
+    QTime orarioDiFine = base.hasEndTime ? base.endTime : base.startTime;
+
+    if(esisteSovrapposizione(data, base.startTime, orarioDiFine))
+        return;
+
+    Task t = base;
+    t.frequency = "Nessuna";
+    tasksByDate[data].append(t);
+
 }
 
 // attività su file
