@@ -1,23 +1,44 @@
+/** 
+    @file main.cpp
+    @brief File di test per la classe template set
+
+    Questo file contiene una serie di test automatici
+    per verificare il corretto funzionamento della classe set<T> e
+    delle funzionalità associate. I test utilizzano assert per 
+    la verifica a runtime. 
+*/
+
 #include <iostream>
 #include <cassert>
 #include "set.hpp"
 #include <stdexcept>
 
+/** 
+    @brief Predicato che verifica se un intero è pari
+*/
 struct IsEven{
     bool operator()(int x) const{
         return x % 2 == 0;
     }
 };
 
+/** 
+    @brief Predicato che verifica se un intero è dispari
+*/
 struct IsOdd{
     bool operator()(int x) const{
         return !(x % 2 == 0);
     }
 };
+
 /* ============================
    TEST COSTRUTTORE DEFAULT
    ============================ */
+/** 
+    @brief Test del costruttore di default
 
+    Verifica che un set appena creato sia vuoto
+*/
 void test_constructor(){
     std::cout << "[TEST CONSTRUCTOR] Costruttore di default" << std::endl;
 
@@ -34,7 +55,15 @@ void test_constructor(){
 /* ============================
    TEST ADD / CONTAINS / SIZE
    ============================ */
+/** 
+    @brief Test delle operazioni add, contains e size
 
+    Verifica che:
+    - l'inserimento di elementi funzioni correttamente
+    - i duplicati non vengano inseriti
+    - contains restituisca il valore corretto
+    - size rappresenti il numero corretto di elementi
+*/
 void test_add_contains(){
     std::cout << "[TEST ADD] add / contains / size" << std::endl;
 
@@ -54,12 +83,43 @@ void test_add_contains(){
     assert(!s.contains(30));
 
     std::cout << "  >>> [END] add / contains / size OK" << std::endl << std::endl;
+
+    std::cout << "[TEST] set<string>" << std::endl;
+    set<std::string> set_string;
+    set_string.add("c++");
+    set_string.add("java");
+    set_string.add("python");
+    set_string.add("c++");
+
+    std::cout << "  set: " << set_string << std::endl;
+
+    std::cout << "   size: " << set_string.size() << " (expected 3)" << std::endl;
+    assert(set_string.size() == 3);
+    assert(set_string.contains("c++"));
+    assert(set_string.contains("java"));
+    assert(set_string.contains("python"));
+    assert(!set_string.contains("javascript"));
+
+    set_string.remove("java");
+    std::cout << "  Rimosso 'java' -> set: " << set_string << std::endl;
+
+    assert(!set_string.contains("java"));
+    std::cout << "   size: " << set_string.size() << " (expected 2)" << std::endl;
+    assert(set_string.size() == 2);
+
+    std::cout << "  >>> [OK] set<string> " << std::endl << std::endl;
 }
 
 /* ============================
    TEST REMOVE
    ============================ */
+/** 
+    @brief Test della funzione remove
 
+    Verifica la rimozione di elementi presenti, 
+    l'assenza di effetti per elementi non presenti 
+    e il caso di set con un solo elemento. 
+*/
 void test_remove(){
     std::cout << "[TEST REMOVE] remove" << std::endl;
 
@@ -96,14 +156,17 @@ void test_remove(){
     assert(f.size() == 0);
 
     std::cout << "  >>> [OK] remove su set con un solo elemento" << std::endl << std::endl;
-
-
 }
 
 /* ============================
    TEST OPERATOR[]
    ============================ */
+/** 
+    @brief Test dell'operatore di accesso operator[]
 
+    Verifica che l'operatore di accesso consenta la lettura corretta degli elementi del set
+    tramite indice e che venga sollevata un'eccezione std::out_of_range in caso di accesso non valido. 
+*/
 void test_operatore_di_accesso(){
     std::cout << "[TEST OPERATORE DI ACCESSO] operator[]" << std::endl;
 
@@ -129,7 +192,12 @@ void test_operatore_di_accesso(){
 /* ============================
    TEST COPY CONSTRUCTOR
    ============================ */
+/** 
+    @brief Test del costruttore di copia
 
+    Verifica che il costruttore di copia crei un nuovo set con lo stesso contenuto del set originale,
+    mantenendo l'indipendenza tra i due oggetti. 
+*/
 void test_copy_constructor(){
     std::cout << "[TEST CONSTRUCTOR] Copy constructor" << std::endl;
 
@@ -150,7 +218,12 @@ void test_copy_constructor(){
 /* ============================
    TEST OPERATOR=
    ============================ */
+/** 
+    @brief Test dell'operatore di assegnamento
 
+    Verifica che l'operatore di assegnamento esegua correttamente la copia di un set, 
+    producendo due oggetti distinti ma equivalenti nel contenuto. 
+*/
 void test_operatore_assegnamento(){
     std::cout << "[TEST ASSEGNAMENTO] operator=" << std::endl;
 
@@ -171,7 +244,12 @@ void test_operatore_assegnamento(){
 /* ============================
    TEST OPERATOR==
    ============================ */
+/** 
+    @brief Test dell'operatore di uguaglianza ==
 
+    Verifica che due set siano considerati uguali quando contengono gli stessi elementi, indipendentemente dall'ordine 
+    di inserimento, e diversi quando la loro cardinalità o il contenuto differiscono. 
+*/
 void test_uguaglianza(){
     std::cout << "[TEST BOOL] operator==" << std::endl;
 
@@ -198,7 +276,12 @@ void test_uguaglianza(){
 /* ============================
    TEST CLEAR
    ============================ */
-
+/** 
+    @brief Test della funzione clear
+    
+    Verifica che la funzione clear rimuova correttamente tutti gli elementi
+    dal set e che la dimensione venga riportata a zero. 
+*/
 void test_clear(){
     std::cout << "[TEST CLEAR] clear()" << std::endl;
 
@@ -222,7 +305,11 @@ void test_clear(){
 /* ============================
    TEST ITERATOR BASE
    ============================ */
+/** 
+    @brief Test dell'iteratore base
 
+    Verifica che l'iteratore permetta di scorrere correttamente tutti gli elementi del set
+*/
 void test_iteratore_base(){
     std::cout << "[TEST ITERATORE] base" << std::endl;
 
@@ -246,13 +333,16 @@ void test_iteratore_base(){
     assert(c == s.size());
 
     std::cout << "  >>>[OK] iteratore base" << std::endl << std::endl;
-
 }
 
 /* ============================
    TEST PRE / POST INCREMENTO
    ============================ */
+/** 
+    @brief Test di pre e post incremento degli iteratori
 
+    Verifica il corretto funzionamento di ++it e it++.
+*/
 void test_iteratore_incremento(){
     std::cout << "[TEST ITERATORE] ++it / it++" << std::endl;
 
@@ -279,7 +369,12 @@ void test_iteratore_incremento(){
 /* ============================
    TEST CONST_ITERATOR
    ============================ */
+/** 
+    @brief Test del const_iterator
 
+    Verifica che il const_iterator consenta
+    l'accesso in sola lettura agli elementi. 
+*/
 void test_const_iterator(){
     std::cout << "[TEST CONST_ITERATOR]" << std::endl;
 
@@ -304,14 +399,22 @@ void test_const_iterator(){
     assert(c == const_s.size());
 
     std::cout << "  >>> [OK] const_iterator" << std::endl << std::endl;
-
 }
 
 /* ============================
    TEST CONFRONTO ITERATOR /
    CONST_ITERATOR
    ============================ */
+/** 
+    @brief Test del confronto tra iterator e const_iterator
 
+    Verifica che un iterator e un const_iterator possano essere confrontati correttamente 
+    tramite gli operatori di uguaglianza e disuguaglianza.
+
+    In particolare, il test controlla che: 
+    - iterator e const_iterator che puntano allo stesso elemento risultino uguali
+    - dopo l'incremento dell'iterator, il confronto evidenzi correttamente la differenza
+*/
 void test_iterator_confronto(){
     std::cout << "[TEST ITERATOR VS CONST_ITERATOR]" << std::endl;
 
@@ -332,7 +435,11 @@ void test_iterator_confronto(){
 /* ============================
    TEST OPERATOR+
    ============================ */
+/** 
+    @brief Test dell'operatore di unione +
 
+    Verifica che l'unione tra due set produca un nuovo set contenente tutti gli elementi. 
+*/
 void test_operator_unione(){
     std::cout << "[TEST OPERATOR+]" << std::endl;
 
@@ -366,7 +473,11 @@ void test_operator_unione(){
 /* ============================
    TEST OPERATOR- (INTERSEZIONE)
    ============================ */
+/** 
+    @brief Test dell'operatore di intersezione - 
 
+    Verifica che l'intersezione tra due set contenga solo gli elementi comuni.
+*/
 void test_operator_intersezione(){
     std::cout << "[TEST OPERATOR- (intersezione)]" << std::endl;
 
@@ -399,7 +510,11 @@ void test_operator_intersezione(){
 /* ============================
    TEST COSTRUTTORE DA ITERATORI
    ============================ */
+/** 
+    @brief Test del costruttore da iteratori
 
+    Verifica la corretta costruzione di un set a partire da una sequenza di iteratori
+*/
 void test_iterator_constructor(){
     std::cout << "[TEST COSTRUTTORE DA ITERATORI]" << std::endl;
 
@@ -420,7 +535,11 @@ void test_iterator_constructor(){
 /* ============================
    TEST FILTER 
    ============================ */
+/** 
+    @brief Test della funzione filter_out
 
+    Verifica il filtraggio degli elementi del set tramite un predicato passato come parametro.
+*/
 void test_filter_out(){
     std::cout << "[TEST filter_out]" << std::endl;
 
@@ -451,6 +570,11 @@ void test_filter_out(){
 /* ============================
    TEST LOAD / SAVE
    ============================ */
+/** 
+    @brief Test delle funzioni save e load
+
+    Verifica il salvataggio e il caricamento di un set di Attivita su file inclusi i casi di set vuoto.
+*/
 void test_load_save(){
 
     std::cout << "[TEST save / load] tipi custom (attività)" << std::endl;
@@ -530,7 +654,11 @@ void test_load_save(){
 /* ============================
    TEST TIPO CUSTOM ATTIVITA
    ============================ */
+/** 
+    @brief Test dell'utilizzo di un tipo custom Attivita
 
+    Verifica che il set funzioni correttamente con tipi definiti dall'utente
+*/
 void test_tipo_custom(){
 
     std::cout << "[TEST] Tipo custom Attivita" << std::endl;
@@ -570,7 +698,14 @@ void test_tipo_custom(){
     std::cout << "  >>> [OK] Tipo custom Attivita" << std::endl << std::endl;
 }
 
+/** 
+    @brief Funzione principale di test
 
+    Esegue tutti i test definiti per la classe set 
+    e ne verifica il corretto comportamento tramite assert
+
+    @return 0 se tutti i test terminano correttamente.
+*/
 int main() {
 
     std::cout << std::endl;
@@ -612,8 +747,6 @@ int main() {
     test_tipo_custom();
 
     std::cout << " *** TUTTI I TEST PASSATI CORRETTAMENTE ***" << std::endl << std::endl;
-
-
 
     return 0;
 }

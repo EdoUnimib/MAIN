@@ -1,9 +1,11 @@
 /** 
     @file set.hpp
 
-    @brief File header della classe set templata
+    @brief Implementazione della classe set templata
 
-    File di dichiarazioni/definizioni della classe set templata
+    Questo file contiene la definizione e l'implementazione
+    della classe template set<T>. Un Set è una collezione di dati che NON può
+    contenere duplicati. 
 */
 #ifndef SET_HPP
 #define SET_HPP
@@ -17,18 +19,44 @@
 #include <iterator> // std::forward_iterator_tag
 #include <cstddef>  // std::ptrdiff_t
 
+/** 
+    @brief Struttura che rappresenta un'attività
+
+    Contiene le informazioni principali di un'attività
+    come il titolo e l'orario di inizio e fine. 
+*/
 struct Attivita{
     std::string titolo;
     int ora_inizio;
     int ora_fine;
 };
 
+/** 
+    @brief Operatore di uguaglianza tra due Attività
+
+    Due attività sono considerate uguali se hanno lo stesso titolo, 
+    la stessa ora di inizio e la stessa ora di fine. 
+
+    @param a prima attività
+    @param b seconda attività
+    @return true se le due attvità sono uguali, false altrimenti
+*/
 bool operator==(const Attivita &a, const Attivita &b){
     return a.titolo == b.titolo &&
            a.ora_inizio == b.ora_inizio &&
            a.ora_fine == b.ora_fine;
 }
 
+/** 
+    @brief Operatore di output per Attività
+
+    Stampa un'attività nel formato: 
+    "titolo ora_inizio-ora_fine".
+
+    @param os flusso di output
+    @param a attvità da stampare
+    @return riferimento al flusso di output
+*/
 std::ostream& operator<<(std::ostream& os, const Attivita &a){
     os << a.titolo << " "
        << a.ora_inizio << "-"
@@ -36,6 +64,13 @@ std::ostream& operator<<(std::ostream& os, const Attivita &a){
     return os;
 }
 
+/** 
+    @brief Classe set templata
+
+    Rappresenta un insieme di elementi unici di tipo T.
+
+    @tparam T tipo degli elementi contenuti nel set
+*/
 template<typename T>
 class set{
 
@@ -110,7 +145,6 @@ class set{
             clear();
             throw;
         }
-        
     }
 
     /** 
@@ -155,7 +189,6 @@ class set{
 
        _size = 0;
        _head = nullptr;
-        
     }
 
     /** 
@@ -163,15 +196,16 @@ class set{
 
         @param other set da scambiare
     */
-   void swap(set &other){
-    std::swap(_head, other._head);
-    std::swap(_size, other._size);
+    void swap(set &other){
+        std::swap(_head, other._head);
+        std::swap(_size, other._size);
    }
 
     /** 
-        Funzione booleana che controlla se è presente valore passato come parametro nel set
+        @brief Verifica se un valore è presente nel set
 
-        @param p valore da controllare se è presente
+        @param p valore da cercare
+        @return treu se il valore è presente, false altrimenti
     */
     bool contains(const T &p) const{
         node *curr = _head;
@@ -183,11 +217,22 @@ class set{
 
         return false;
     }
+    /** 
+        @brief Ritorna la dimensione del set
 
+        @return _size
+    */
     unsigned int size() const{
         return _size;
     }
 
+    /** 
+        @brief Inserisce un valore nel set
+
+        Inserisce il valore solo se non è già presente.
+
+        @param value valore da inserire
+    */
     void add(const T &value){
 
         // se già presente, non fare nulla
@@ -201,9 +246,15 @@ class set{
         _head = n;
 
         ++_size;
-       
     }
 
+    /** 
+        @brief Rimuove un valore dal set
+
+        Se il valore non è presente, il set rimane invariato
+
+        @param value valore da rimuovere
+    */
     void remove(const T &value){
 
         // caso lista vuota
@@ -234,6 +285,15 @@ class set{
         }
     }
 
+    /** 
+        @brief Operatore di uguaglianza tra due set
+
+        Due set sono considerati uguali se contengono
+        gli stessi elementi indipendentemente dall'ordine. 
+
+        @param other set da confrontare con l'oggetto corrente
+        @return true se i due set contengono gli stessi elementi, false altrimenti
+    */
     bool operator==(const set &other) const{
 
         if(this->_size != other._size)
@@ -247,9 +307,15 @@ class set{
         }
 
         return true;
-       
     }
 
+    /** 
+        @brief Operatore di accesso in lettura
+
+        @param i indice dell'elemento
+        @return riferimento costante all'elemento
+        @throw std::out_of_range se l'indice non è valido
+    */
     const T& operator[](unsigned int i) const{
 
         if(i >= _size)
@@ -269,6 +335,43 @@ class set{
         throw std::out_of_range("Indice fuori dal range");
     }
 
+    /** 
+        @brief Operatore di accesso in lettura e scrittura 
+
+        @param i indice dell'elemento
+        @return riferimento costante all'elemento
+        @throw std::out_of_range se l'indice non è valido
+    */
+    T& operator[](unsigned int i){
+
+        if(i >= _size)
+            throw std::out_of_range("Indice fuori dal range");
+
+        node *curr = _head;
+        unsigned int index = 0;
+
+        while(curr != nullptr){
+            if(index == i)
+                return curr->value;
+            
+                curr = curr->next;
+                ++index;
+        }
+
+        throw std::out_of_range("Indice fuori dal range");
+    }
+
+    /** 
+        @brief Operatore di intersezione tra due set
+
+        Restituisce un nuovo set contenente gli elementi
+        presenti sia nel set corrente sia nel set passato
+        come parametro. 
+        L'operatore non modifica i set originali. 
+
+        @param other set con cui calcolare l'intersezione
+        @return nuovo set risultato dell'intersezione.
+    */
     set operator-(const set &other) const{
 
         set risultato;
@@ -287,6 +390,20 @@ class set{
         return risultato;
     }
 
+    /** 
+        @brief Costruttore da intervallo di iteratori
+
+        Crea un set a partire da una coppia generica di iteratori. Gli elementi
+        compresi nell'intervallo [first, last) vengono inseriti nel set con la funzione add()
+        che garantisce l'assenza di duplicati. In caso si eccezioni durante l'inserimento
+        o l'allocazione dinamica della memoria, il set viene svuotato per evitare memory leak
+        e l'eccezione viene rilanciata. 
+
+        @tparam Iterator tipo dell'iteratore
+        @param first iteratore all'inizio dell'intervallo
+        @param last iteratore alla fine dell'intervallo
+        @throw qualunque eccezione sollevata durante l'inseriemento
+    */
     template<typename Iterator>
     set(Iterator first, Iterator last) : _head(nullptr), _size(0){
 
@@ -307,14 +424,15 @@ class set{
 
 
 
-
-
-
-
-
 	
 	class const_iterator; // forward declaration
 
+    /** 
+        @brief Iteratore forward per la classe set
+
+        Permette di scorrere gli elementi del set e di accedere in lettura
+        e scrittura ai valori contenuti. Implementa un iteratore di tipo forward. 
+    */
 	class iterator {
 		//	
 	public:
@@ -325,13 +443,9 @@ class set{
 		typedef T&                        reference;
 
 	
-		iterator() : current(nullptr){
-			//!!!
-		}
+		iterator() : current(nullptr){}
 		
-		iterator(const iterator &other) : current(other.current){
-			//!!!
-		}
+		iterator(const iterator &other) : current(other.current){}
 
 		iterator& operator=(const iterator &other) {
 			if (this != &other){
@@ -341,9 +455,7 @@ class set{
             return *this;
 		}
 
-		~iterator() {
-			//!!!
-		}
+		~iterator() {}
 
 		// Ritorna il dato riferito dall'iteratore (dereferenziamento)
 		reference operator*() const {
@@ -396,7 +508,6 @@ class set{
 	private:
 		node* current;  //Dati membro
 
-		
 		friend class set; 
 
 		
@@ -407,18 +518,34 @@ class set{
 		
 	}; // classe iterator
 	
-	// Ritorna l'iteratore all'inizio della sequenza dati
+	/** 
+        @brief Restituisce un iteratore all'inizio del set
+
+        @return iteratore al primo elemento
+    */
 	iterator begin() {
 		return iterator(_head);
 	}
 	
-	// Ritorna l'iteratore alla fine della sequenza dati
+	/** 
+        @brief Restituisce un iteratore alla fine del set
+
+        L'iteratore restituito non fa riferimento ad alcun elemento
+
+        @return iteratore alla fine del set
+    */
 	iterator end() {
 		return iterator(nullptr);
 	}
 	
 	
-	
+	/** 
+        @brief Iteratore costante per la classe set
+
+        Permette di scorrere gli elementi del set in sola lettura. 
+        Non consente la modifica dei vari valori a cui punta. 
+        Implmenta un iteratore di tipo forword. 
+    */
 	class const_iterator {
 		//	
 	public:
@@ -429,13 +556,9 @@ class set{
 		typedef const T&                  reference;
 
 	
-		const_iterator() : current(nullptr){
-			//!!!
-		}
+		const_iterator() : current(nullptr){}
 		
-		const_iterator(const const_iterator &other) : current(other.current) {
-			//!!!
-		}
+		const_iterator(const const_iterator &other) : current(other.current) {}
 
 		const_iterator& operator=(const const_iterator &other) {
 			if (this != &other){
@@ -444,9 +567,7 @@ class set{
             return *this;
 		}
 
-		~const_iterator() {
-			//!!!
-		}
+		~const_iterator() {}
 
 		// Ritorna il dato riferito dall'iteratore (dereferenziamento)
 		reference operator*() const {
@@ -482,7 +603,6 @@ class set{
 		}
 
 		
-		
 		friend class iterator;
 
 		// Uguaglianza
@@ -496,9 +616,7 @@ class set{
 		}
 
 		// Costruttore di conversione iterator -> const_iterator
-		const_iterator(const iterator &other) : current(other.current) {
-			//!!!
-		}
+		const_iterator(const iterator &other) : current(other.current) {}
 
 		// Assegnamento di un iterator ad un const_iterator
 		const_iterator &operator=(const iterator &other) {
@@ -509,37 +627,45 @@ class set{
 
 	private:
 		const node* current; //Dati membro
-
 		
 		friend class set; // !!! Da cambiare il nome!
 
 		// Costruttore privato di inizializzazione usato dalla classe container
 		// tipicamente nei metodi begin e end
-		const_iterator(const node* n) : current(n) { 
-			//!!! 
-		}
-		
-		// !!! Eventuali altri metodi privati
+		const_iterator(const node* n) : current(n) {}
 		
 	}; // classe const_iterator
 	
-	// Ritorna l'iteratore all'inizio della sequenza dati
+	/** 
+        @brief Restituisce un iteratore costante all'inzio del set
+
+        @return iteratore costante al primo elemento
+    */
 	const_iterator begin() const {
 		return const_iterator(_head);
 	}
 	
-	// Ritorna l'iteratore alla fine della sequenza dati
+	/** 
+        @brief Restituisce un iteratore costante alla fine del set
+
+        L'iteratore restituito non fa riferimento ad alcun elemento
+
+        @return iteratore costante alla fine del set.
+    */
 	const_iterator end() const {
 		return const_iterator(nullptr);
-	}
-	
-	
-	
-	
-//}; // CLASSE_CONTAINER_PADR
-
+	}	
+//}; // CLASSE_CONTAINER_PADRE
 };
 
+/** 
+    @brief Operatore di output per il set
+
+    @tparam T tipo degli elementi del set
+    @param os flusso di output
+    @param s set da stampare
+    @return riferimento al flusso di output
+*/
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const set<T> &s){
     
@@ -559,6 +685,17 @@ std::ostream &operator<<(std::ostream &os, const set<T> &s){
 
 }
 
+/** 
+    @brief Operatore di unione tra due set
+
+    Restituisce un nuovo set contenente tutti gli elementi presenti
+    in almeno uno dei due set passati come parametro. L'operatore non modifica i set originali.
+
+    @tparam T tipo degli elementi contenuti nei set
+    @param s1 primo set
+    @param s2 secondo set
+    @return nuovo set risultato dell'unione di s1 e s2
+*/
 template<typename T>
 set<T> operator+(const set<T>& s1, const set<T>& s2){
 
@@ -573,9 +710,17 @@ set<T> operator+(const set<T>& s1, const set<T>& s2){
     }
 
     return risultato;
-
 }
 
+/** 
+    @brief Filtra gli elementi del set secondo un predicato
+
+    @tparam T tipo degli elementi
+    @tparam Predicato tipo del predicato
+    @param s set di partenza
+    @param P predicato di filtraggio
+    @return nuovo set contenente gli elementi che soddisfano il predicato
+*/
 template <typename T, typename Predicato>
 set<T> filter_out(const set<T>& s, Predicato P){
 
@@ -595,6 +740,16 @@ set<T> filter_out(const set<T>& s, Predicato P){
     return risultato;
 }
 
+/** 
+    @brief Salva il contenuto di un set di Attivita su file 
+
+    Scrive ogni elemento del set su una riga del file, 
+    utilizzando il carattere ';' come separatore tra i campi. 
+
+    @param s set di Attività da salvare
+    @param filename nome del file di output
+    @param std::runtime_error se il file non può essere aperto
+*/
 void save(const set<Attivita> &s, const std::string &filename){
     std::ofstream file(filename.c_str());
 
@@ -609,6 +764,16 @@ void save(const set<Attivita> &s, const std::string &filename){
     }
 }
 
+/** 
+    @brief Carica il contenuto di un set di Attività da file
+
+    Se esiste il file, il set passato come parametro viene prima svuotato
+    e successivamente riempito con i dati letti dal file
+    Se il file non esiste o non è accessibile, la funzione termina. 
+
+    @param filename nome del file di input
+    @param s set di Attivita in cui caricare i dati
+*/
 void load(const std::string &filename, set<Attivita> &s){
     std::ifstream file(filename.c_str());
 
@@ -628,7 +793,6 @@ void load(const std::string &filename, set<Attivita> &s){
         file >> ora_fine;
         file.ignore(); // salta il newline
         
-
         Attivita a;
         a.titolo = titolo;
         a.ora_inizio = ora_inizio;
@@ -637,7 +801,5 @@ void load(const std::string &filename, set<Attivita> &s){
         s.add(a);
     }
 }
-
-
 
 #endif
