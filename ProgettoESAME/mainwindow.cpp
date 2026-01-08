@@ -97,22 +97,24 @@ void MainWindow::onSaveTaskClicked(){
         oraFine = oraInizio;
     }
 
-    if(esisteSovrapposizione(selectedDate, oraInizio, oraFine)){
-        QMessageBox::warning(this, "Sovrapposizione evento","Esiste già un'attività in questa fascia oraria.");
-        return;
-    }
-
-    if(ui->checkEndTime->isChecked() && (ui->timeEnd->time() < ui->timeStart->time())){
-        QMessageBox::warning(this, "Orario non valido","L'orario di fine deve essere successivo all'orario di inizio.");
-        return;
-    }
-
     Task task;
 
     if(ui->comboType->currentText()=="Evento"){
         task.type = TaskType::Event;
     }else{
         task.type = TaskType::Activity;
+    }
+
+    if(task.type == TaskType::Activity){
+        if(ui->checkEndTime->isChecked() && (oraFine < oraInizio)){
+            QMessageBox::warning(this, "Orario non valido","L'orario di fine deve essere successivo all'orario di inizio.");
+            return;
+        }
+
+        if(esisteSovrapposizione(selectedDate, oraInizio, oraFine)){
+            QMessageBox::warning(this, "Sovrapposizione attività","Esiste già un'attività in questa fascia oraria.");
+            return;
+        }
     }
 
     task.title = ui->editTitle->text();
@@ -233,6 +235,9 @@ bool MainWindow::esisteSovrapposizione(const QDate &date, const QTime &start, co
         QTime otherStart = tasksOfDay[i].startTime;
         QTime otherEnd;
 
+        if(tasksOfDay[i].type == TaskType::Event)
+            continue;
+
         if(tasksOfDay[i].hasEndTime){
             otherEnd = tasksOfDay[i].endTime;
         }else{
@@ -283,13 +288,15 @@ void MainWindow::generaRicorrenze(const Task &taskBase, const QDate &dataDiInizi
 
 void MainWindow::aggiungiIstanza(const Task &base, const QDate &data){
 
-    QTime orarioDiFine = base.hasEndTime ? base.endTime : base.startTime;
+    if(base.type == TaskType::Activity){
+        QTime orarioDiFine = base.hasEndTime ? base.endTime : base.startTime;
 
-    if(esisteSovrapposizione(data, base.startTime, orarioDiFine))
-        return;
+        if(esisteSovrapposizione(data, base.startTime, orarioDiFine))
+            return;
+    }
 
     Task t = base;
-    t.frequency = "Nessuna";
+    t.frequency = base.frequency;
     tasksByDate[data].append(t);
 
 }
@@ -349,6 +356,7 @@ void MainWindow::caricaDaFile(){
         QDate data = QDate::fromString(parti[0], "yyyy-MM-dd");
 
         Task t;
+        t.completed = false;
 
         t.type = (parti[1] == "Evento") ? TaskType::Event : TaskType::Activity;
         t.title = parti[2];
@@ -361,6 +369,7 @@ void MainWindow::caricaDaFile(){
         }
 
         t.frequency = parti[5];
+        t.completed = (parti[6] == "1");
 
         tasksByDate[data].append(t);
     }
